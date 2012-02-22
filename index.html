@@ -24,14 +24,51 @@
 			}
 		</style>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-		<script>
-			$(document).ready(function(){
-				$('code').attr('contenteditable', 'true');
-				if (window.location.search == '?debug') {
-					$('.fragment').removeClass('fragment');
-				}
-			});
-		</script>
+		<script src="http://coffeescript.org/extras/coffee-script.js"></script>
+<script type="text/coffeescript">
+	$(document).ready ->
+
+		# OUTDENT CODE
+		tabCharacter = String.fromCharCode(9)
+		countNumberOfLeadingTabs = (line) ->
+			numberOfLeadingTabs = 0
+			for character in line
+				if character == tabCharacter
+					numberOfLeadingTabs++
+				else
+					return numberOfLeadingTabs;
+
+			return numberOfLeadingTabs
+
+
+		$('code').each ->
+			code = $(this).html()
+
+
+			numberOfLeadingTabs = Number.MAX_VALUE
+
+			for line in code.split("\n")
+				continue if line.match(/^\w*$/)
+				tabs = countNumberOfLeadingTabs(line)
+				numberOfLeadingTabs = tabs if tabs < numberOfLeadingTabs
+
+			adjustedCode = []
+			for line in code.split("\n")
+				adjustedCode.push(line[numberOfLeadingTabs...line.length].replace(tabCharacter, "   "))
+
+			if adjustedCode[0].match(/^\w*$/)
+				adjustedCode.shift()
+
+			$(this).html(adjustedCode.join("\n"))
+
+
+		# Content Editable
+		$('code').attr('contenteditable', 'true')
+
+		# Debug
+		if window.location.search == '?debug'
+			$('.fragment').removeClass('fragment')
+</script>
 	</head>
 
 	<body>
@@ -139,21 +176,21 @@
 					<section>
 						<h2>Render a static page template</h2>
 <pre><code>
-&lt;html&gt;
-&lt;head&gt;
-	&lt;f:section name="stylesheets"&gt;
-		&lt;!-- Style Sheets come here --&gt;
-	&lt;/f:section&gt;
-	&lt;!-- Same for JS --&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;f:section name="body"&gt;
-	Main Menu: &lt;typoScript:renderTypoScript path="parts/mainMenu" /&gt;
+	&lt;html&gt;
+	&lt;head&gt;
+		&lt;f:section name="stylesheets"&gt;
+			&lt;!-- Style Sheets come here --&gt;
+		&lt;/f:section&gt;
+		&lt;!-- Same for JS --&gt;
+	&lt;/head&gt;
+	&lt;body&gt;
+	&lt;f:section name="body"&gt;
+		Main Menu: &lt;typoScript:renderTypoScript path="parts/mainMenu" /&gt;
 
-	Content: &lt;typoScript:renderTypoScript path="sections/main" /&gt;
-&lt;/f:section&gt;
-&lt;/body&gt;
-&lt;/html&gt;
+		Content: &lt;typoScript:renderTypoScript path="sections/main" /&gt;
+	&lt;/f:section&gt;
+	&lt;/body&gt;
+	&lt;/html&gt;
 </code></pre></section>
 <section><pre><code class="javascript">
 page = TYPO3.TYPO3:Page
