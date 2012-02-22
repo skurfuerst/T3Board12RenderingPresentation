@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>reveal.js</title>
+		<title>TypoScript Harmony - T3BOARD12</title>
 
 		<meta name="description" content="An easy to use CSS 3D slideshow tool for quickly creating good looking HTML presentations.">
 		<meta name="author" content="Hakim El Hattab">
@@ -28,6 +28,18 @@
 <script type="text/coffeescript">
 	$(document).ready ->
 
+		# Escape Code
+		$('script[type=escapedCode]').each ->
+			code = $(this).html()
+			code = code.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+			preTag = $('<pre></pre>')
+			codeTag = $('<code></code>')
+			codeTag.html(code)
+			preTag.append(codeTag)
+			$(this).replaceWith(preTag)
+
+
 		# OUTDENT CODE
 		tabCharacter = String.fromCharCode(9)
 		countNumberOfLeadingTabs = (line) ->
@@ -40,8 +52,7 @@
 
 			return numberOfLeadingTabs
 
-
-		$('code').each ->
+		$('pre code').each ->
 			code = $(this).html()
 
 
@@ -54,20 +65,51 @@
 
 			adjustedCode = []
 			for line in code.split("\n")
-				adjustedCode.push(line[numberOfLeadingTabs...line.length].replace(tabCharacter, "   "))
+				adjustedCode.push(line[numberOfLeadingTabs+1...line.length].replace(/\t/g, "   "))
 
 			if adjustedCode[0].match(/^\w*$/)
 				adjustedCode.shift()
 
 			$(this).html(adjustedCode.join("\n"))
 
-
 		# Content Editable
 		$('code').attr('contenteditable', 'true')
 
-		# Debug
-		if window.location.search == '?debug'
+		# Debug: Disable per-slide animations
+		if window.location.search != '?presentation'
 			$('.fragment').removeClass('fragment')
+
+
+		# Parse the query string into a key/value object
+		query = {};
+		location.search.replace( /[A-Z0-9]+?=(\w*)/gi, (a)->
+			query[ a.split( '=' ).shift() ] = a.split( '=' ).pop()
+		)
+
+		Reveal.initialize({
+			# Display controls in the bottom right corner
+			controls: true,
+
+			# Display a presentation progress bar
+			progress: true,
+
+			# If true; each slide will be pushed to the browser history
+			history: true,
+
+			# Flags if mouse wheel navigation should be enabled
+			mouseWheel: true,
+
+			# Apply a 3D roll to links on hover
+			rollingLinks: true,
+
+			# UI style
+			theme: query.theme || 'default', # default/neon
+
+			# Transition style
+			transition: query.transition || 'default' # default/cube/page/concave/linear(2d)
+		});
+
+		hljs.initHighlighting();
 </script>
 	</head>
 
@@ -82,10 +124,18 @@
 					<h3 class="inverted">Revisiting TYPO3 Phoenix Content Rendering</h3>
 					<p>by Sebastian Kurfürst</p>
 					<p>for T3BOARD12</p>
+					<p>
+						<script>
+							if (window.location.search != '?presentation')
+								document.write('<a href="?presentation">Switch to Presentation Mode</a></p>');
+							else
+								document.write('<a href="?foo">Switch to Static Mode</a></p>');
+						</script>
+
 					<script>
 						// Delicously hacky. Look away.
 						if( navigator.userAgent.match( /(iPhone|iPad|iPod|Android)/i ) )
-						document.write( '<p style="color: rgba(0,0,0,0.3); text-shadow: none;">('+'Tap to navigate'+')</p>' );
+							document.write( '<p style="color: rgba(0,0,0,0.3); text-shadow: none;">('+'Tap to navigate'+')</p>' );
 					</script>
 				</section>
 
@@ -119,10 +169,10 @@
 					<section>
 						<h2>Bound to nodes & stand-alone</h2>
 
-						<p>sometimes, we want to output <b>static text</b></p>
-						<p>sometimes, rendering of <b>content</b></p>
-						<p>sometimes, one node is rendered <b>multiple times</b></p>
-						<p>-> <b>m:n relation</b> nodes -- TypoScript objects</p>
+						<p class="fragment">sometimes, we want to output <b>static text</b></p>
+						<p class="fragment">sometimes, rendering of <b>content</b></p>
+						<p class="fragment">sometimes, one node is rendered <b>multiple times</b></p>
+						<p class="fragment">&#x25BA; <b>m:n relation</b> nodes -- TypoScript objects</p>
 					</section>
 
 					<section>
@@ -136,9 +186,9 @@
 						<h2>Out-of-Band Rendering</h2>
 
 						<p>Rendering <b>single content elements</b></p>
-						<p>-> <b>side-effect-free</b> language</p>
-						<p>-> <b>compact addressing</b> needed</p>
-						<code>
+						<p class="fragment">&#x25BA; <b>side-effect-free</b> language</p>
+						<p class="fragment">&#x25BA; <b>compact addressing</b> needed</p>
+						<code class="fragment">
 							Node Path: /my/node/path<br />
 							TypoScript Path: page1/rightColumn
 						</code>
@@ -160,10 +210,12 @@
 						<p>TypoScript v4: <b>extensibility, stdWrap</b></p>
 						<p>Fluid: <b>HTML Templating</b></p>
 						<p>JavaScript: <b>Prototype-based inheritance</b></p>
-						<hr />
-						<p>jQuery: <b>selecting nodes, fluent interface</b></p>
-						<p>CSS: set-based API; <b>Selector Syntax</b></p>
-						<p>XPath: <b>Traversal</b> Operations</p>
+						<div class="fragment">
+							<hr />
+							<p>jQuery: <b>selecting nodes, fluent interface</b></p>
+							<p>CSS: set-based API; <b>Selector Syntax</b></p>
+							<p>XPath: <b>Traversal</b> Operations</p>
+						</div>
 					</section>
 				</section>
 
@@ -175,248 +227,264 @@
 					</section>
 					<section>
 						<h2>Render a static page template</h2>
-<pre><code>
-	&lt;html&gt;
-	&lt;head&gt;
-		&lt;f:section name="stylesheets"&gt;
-			&lt;!-- Style Sheets come here --&gt;
-		&lt;/f:section&gt;
-		&lt;!-- Same for JS --&gt;
-	&lt;/head&gt;
-	&lt;body&gt;
-	&lt;f:section name="body"&gt;
-		Main Menu: &lt;typoScript:renderTypoScript path="parts/mainMenu" /&gt;
+						<script type="escapedCode">
+							<html>
+							<head>
+								<f:section name="stylesheets">
+									<!-- Style Sheets come here -->
+								</f:section>
+								<!-- Same for JS -->
+							</head>
+							<body>
+							<f:section name="body">
+								Main Menu: <typoScript:renderTypoScript path="parts/mainMenu" />
 
-		Content: &lt;typoScript:renderTypoScript path="sections/main" /&gt;
-	&lt;/f:section&gt;
-	&lt;/body&gt;
-	&lt;/html&gt;
-</code></pre></section>
-<section><pre><code class="javascript">
-page = TYPO3.TYPO3:Page
-page.body.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/Page/Default.html'
-page.body.sectionName = 'body'
+								Content: <typoScript:renderTypoScript path="sections/main" />
+							</f:section>
+							</body>
+							</html>
+						</script>
+					</section>
+					<section>
+						<pre><code class="javascript">
+							page = TYPO3.TYPO3:Page
+							page.body.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/Page/Default.html'
+							page.body.sectionName = 'body'
 
-page.body.parts {
-	mainMenu = TYPO3.TYPO3:MenuRenderer
-	mainMenu.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/MainMenu.html'
-	mainMenu.entryLevel = 1
-	mainMenu.maximumLevels = 2
-	subMenu = TYPO3.TYPO3:MenuRenderer
-	subMenu.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/SubMenu.html'
-	subMenu.entryLevel = 2
-	subMenu.maximumLevels = 3
-}
-page.head {
-	stylesheets {
-		fromTemplate = TYPO3.TypoScript:FluidRenderer
-		fromTemplate.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/Page/Default.html'
-		fromTemplate.sectionName = 'stylesheets'
-	}
+							page.body.parts {
+								mainMenu = TYPO3.TYPO3:MenuRenderer
+								mainMenu.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/MainMenu.html'
+								mainMenu.entryLevel = 1
+								mainMenu.maximumLevels = 2
+								subMenu = TYPO3.TYPO3:MenuRenderer
+								subMenu.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/SubMenu.html'
+								subMenu.entryLevel = 2
+								subMenu.maximumLevels = 3
+							}
+							page.head {
+								stylesheets {
+									fromTemplate = TYPO3.TypoScript:FluidRenderer
+									fromTemplate.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/Page/Default.html'
+									fromTemplate.sectionName = 'stylesheets'
+								}
 
-	javascripts {
-		fromTemplate = TYPO3.TypoScript:FluidRenderer
-		fromTemplate.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/Page/Default.html'
-		fromTemplate.sectionName = 'javascripts'
-	}
-}
-</code></pre>
+								javascripts {
+									fromTemplate = TYPO3.TypoScript:FluidRenderer
+									fromTemplate.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/Page/Default.html'
+									fromTemplate.sectionName = 'javascripts'
+								}
+							}
+						</code></pre>
 					</section>
 
-<section>
-	<h2>Output the Page Title</h2>
-<pre><code>
-&lt;!-- in the template --&gt;
-...{title}...
-</code></pre>
-<pre><code class="javascript">
-// Static Title
-page.body.title = 'My Static Title'
+					<section>
+						<h2>Output the Page Title</h2>
+						<script type="escapedCode">
+							<!-- in the template -->
+							...{title}...
+						</script>
+						<pre><code class="javascript">
+							// Static Title
+							page.body.title = 'My Static Title'
 
-// make it dynamic:
-page.body.title = ${context.attr('title')}
-</code></pre>
-<p>
-	Each TypoScript object operates on a <b>context</b> (a TYPO3CR Node).
-</p>
-<p>
-	<code>${...}</code> is an <b>EEL Expression</b>
-	<small>(it's like jQuery)</small>
-</p>
-</section>
+							// make it dynamic:
+							page.body.title = ${context.attr('title')}
+						</code></pre>
 
-<section>
-	<h2>Outputting Content</h2>
+						<p>Each TypoScript object operates on a <b>context</b> (a TYPO3CR Node).</p>
+						<p>
+							<code>${...}</code> is an <b>EEL Expression</b>
+							<small>(it's like jQuery)</small>
+						</p>
+					</section>
 
-<pre><code>
-&lt;!-- in the template --&gt;
-&lt;typoScript:renderTypoScript path="sections/main" /&gt;
-</code></pre>
-<pre><code class="javascript">
-page.body.sections.main = TYPO3.TypoScript:CollectionRenderer
-page.body.sections.main.collection = ${context.children('main').children()}
-</code></pre>
-</section>
+					<section>
+						<h2>Outputting Content</h2>
 
-<section>
-<h2>Adjusting Rendering Globally</h2>
+						<script type="escapedCode">
+							<!-- in the template -->
+							<typoScript:renderTypoScript path="sections/main" />
+						</script>
+						<pre><code class="javascript">
+							page.body.sections.main = TYPO3.TypoScript:CollectionRenderer
+							page.body.sections.main.collection = ${context.children('main').children()}
+						</code></pre>
+					</section>
 
-<p>Make the <b>headline texts static</b></p>
-<pre><code class="javascript">
-prototype(TYPO3.TYPO3:Text).headline = 'Static Headline'
-</code></pre>
+					<section>
+						<h2>Adjusting Rendering Globally</h2>
 
-<p><b>Wrap</b> the headline texts<small> might be more useful :-)</small></p>
-<pre><code class="javascript">
-prototype(TYPO3.TYPO3:Text).headline << 1.wrap(prefix: '-', suffix: '-')
-</code></pre>
-</section>
+						<p>Make the <b>headline texts static</b></p>
+						<pre><code class="javascript">
+							prototype(TYPO3.TYPO3:Text).headline = 'Static Headline'
+						</code></pre>
 
-<section>
-<h2>Adjusting Rendering Locally</h2>
+						<div class="fragment">
+							<p><b>Wrap</b> the headline texts<small> might be more useful :-)</small></p>
+							<pre><code class="javascript">
+								prototype(TYPO3.TYPO3:Text).headline << 1.wrap(prefix: '-', suffix: '-')
+							</code></pre>
+						</div>
+					</section>
 
-<p>Make the headline texts <b>inside all three-column elements</b> static</p>
-<pre><code class="javascript">
-prototype(TYPO3.Flow3Org:ThreeColumn).prototype(TYPO3.TYPO3:Text).headline = 'Static Headline'
-</code></pre>
+					<section>
+						<h2>Adjusting Rendering Locally</h2>
 
-<p>Make the headline texts <b>inside the left column of all three-column elements</b> static</p>
-<pre><code class="javascript">
-prototype(TYPO3.Flow3Org:ThreeColumn).left.prototype(TYPO3.TYPO3:Text).headline = 'Static Headline'
-</code></pre>
+						<p>Make the headline texts <b>inside all three-column elements</b> static</p>
+						<pre><code class="javascript">
+							prototype(TYPO3.Flow3Org:ThreeColumn).prototype(TYPO3.TYPO3:Text).headline = 'Static Headline'
+						</code></pre>
 
-<p>That's of course also possible with <b>processors :-)</b></b>
-</section>
+						<div class="fragment">
+							<p>Make the headline texts <b>inside the left column of all three-column elements</b> static</p>
+							<pre><code class="javascript">
+								prototype(TYPO3.Flow3Org:ThreeColumn).left.prototype(TYPO3.TYPO3:Text).headline = 'Static Headline'
+							</code></pre>
+						</div>
 
-<section>
-<h2>Creating a custom Content Element</h2>
+						<p>That's of course also possible with <b>processors :-)</b></b>
+					</section>
 
-<pre><code class="javascript">
-prototype(TYPO3.Flow3Org:TwoColumn) < prototype(TYPO3.TypoScript:FluidRenderer)
-prototype(TYPO3.Flow3Org:TwoColumn) {
-	templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/TwoColumn.html'
-	left = TYPO3.TypoScript:CollectionRenderer
-	left.collection = ${context.children("left").children()}
-	right = TYPO3.TypoScript:CollectionRenderer
-	right.collection = ${context.children("right").children()}
-}
-</code></pre>
-<pre><code>
-&lt!-- the template --&gt;
-&lt;ts:renderTypoScript path="left" /&gt;
-&lt;ts:renderTypoScript path="right" /&gt;
-</code></pre>
-</section>
+					<section>
+						<h2>Creating a custom Content Element</h2>
 
-<section>
-	<h2>Questions so far?</h2>
-	<p class="fragment">OK, then let's dive into the <b>internals</b> :-)</p>
-</section>
+						<pre><code class="javascript">
+							prototype(TYPO3.Flow3Org:TwoColumn) < prototype(TYPO3.TypoScript:FluidRenderer)
+							prototype(TYPO3.Flow3Org:TwoColumn) {
+								templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/TwoColumn.html'
+								left = TYPO3.TypoScript:CollectionRenderer
+								left.collection = ${context.children("left").children()}
+								right = TYPO3.TypoScript:CollectionRenderer
+								right.collection = ${context.children("right").children()}
+							}
+						</code></pre>
+						<script type="escapedCode">
+							<!-- the template -->
+							<ts:renderTypoScript path="left" />
+							<ts:renderTypoScript path="right" />
+						</script>
+					</section>
+
+					<section>
+						<h2>Questions so far?</h2>
+						<p class="fragment">OK, then let's dive into the <b>internals</b> :-)</p>
+					</section>
 				</section>
 
 
-<!-- INTERNALS -->
-<section>
-<section>
-	<h1>Internals</h1>
-</section>
-<section>
-	<h2>TypoScript Programming Paradigm</h2>
-	<p>TypoScript is a <b class="fragment">hierarchical</b>, <b class="fragment">prototype-based</b>, <b class="fragment">object oriented</b>, <b class="fragment">declarative</b>, <b class="fragment">side-effect free</b> language.</p>
-</section>
+				<!-- INTERNALS -->
+				<section>
+					<section>
+						<h1>Internals</h1>
+					</section>
+					<section>
+						<h2>TypoScript Programming Paradigm</h2>
+						<p>TypoScript is a
+							<b class="fragment">hierarchical</b>,
+							<b class="fragment">prototype-based</b>,
+							<b class="fragment">object oriented</b>,
+							<b class="fragment">declarative</b>,
+							<b class="fragment">side-effect free</b> language.
+						</p>
+					</section>
 
-<section>
-	<h2>Basics</h2>
-	<ul>
-		<li>The <b>Parser</b> parses the TypoScript markup and generates an <b>intermediate representation</b> (IR)</li>
-		<li>The <b>Runtime</b> takes the IR and controls rendering.</li>
-		<li>Every <b>TypoScript Object</b> is implemented by a <b>PHP class</b></li>
-		<li>The <b>Runtime</b> instanciates the <b>TypoScript Objects</b>, lazily as needed.</li>
-		<li>A TypoScript Object works on a <b>Context</b> <small>(a TYPO3CR Node)</small> and transforms it somehow, i.e. renders it.</li>
-		<li>the context is a stack and can be manipulated using <b>push/pop</b></li>
-	</ul>
-</section>
+					<section>
+						<h2>Basics</h2>
+						<ul>
+							<li class="fragment">The <b>Parser</b> parses the TypoScript markup and generates an <b>intermediate representation</b> (IR)</li>
+							<li class="fragment">The <b>Runtime</b> takes the IR and controls rendering.</li>
+							<li class="fragment">The <b>Runtime</b> instanciates the <b>TypoScript Objects</b>, lazily as needed.</li>
+							<li class="fragment">Every <b>TypoScript Object</b> is implemented by a <b>PHP class</b></li>
+							<li class="fragment">A TypoScript Object works on a <b>Context</b> <small>(a TYPO3CR Node)</small> and transforms it somehow, i.e. renders it.</li>
+							<li class="fragment">the <b>context</b> is a stack and can be manipulated using <b>push/pop</b></li>
+						</ul>
+					</section>
 
-<section>
-	<h2><small>revisited:</small> Rendering a list of Nodes</h2>
-<pre><code class="javascript">
-// Setting implementation class name
-prototype(TYPO3.TypoScript:CollectionRenderer).implementationClassName = 'TYPO3\\TypoScript\\TypoScriptObjects\\CollectionRenderer'
-prototype(TYPO3.TypoScript:Case).implementationClassName = 'TYPO3\\TypoScript\\TypoScriptObjects\\CaseTsObject'
+					<section>
+						<h2><small>revisited:</small> Rendering a list of Nodes</h2>
+						<pre><code class="javascript">
+							// Setting implementation class name
+							prototype(TYPO3.TypoScript:CollectionRenderer).implementationClassName = 'TYPO3\\TypoScript\\TypoScriptObjects\\CollectionRenderer'
+							prototype(TYPO3.TypoScript:Case).implementationClassName = 'TYPO3\\TypoScript\\TypoScriptObjects\\CaseTsObject'
 
-prototype(TYPO3.TypoScript:CollectionRenderer) {
-	collection = ${context.children()}
-	itemRenderer = TYPO3.TypoScript:Case
-}
+							prototype(TYPO3.TypoScript:CollectionRenderer) {
+								collection = ${context.children()}
+								itemRenderer = TYPO3.TypoScript:Case
+							}
 
-// a CASE TypoScript object maps a TYPO3CR Node to a certain TypoScript object based on a condition.
-// It has a list of MATCHERS which are evaluated in-order
-// Each matcher consists of a "condition", which is in most cases an EEL expression,
-// and a TypoScript type which shall be used if the condition is TRUE.
+							// a CASE TypoScript object maps a TYPO3CR Node to a certain TypoScript object based on a condition.
+							// It has a list of MATCHERS which are evaluated in-order
+							// Each matcher consists of a "condition", which is in most cases an EEL expression,
+							// and a TypoScript type which shall be used if the condition is TRUE.
 
-// Catch-all condition for the default case
-prototype(TYPO3.TypoScript:Case).matchers.999999999999 {
-	condition = ${true}
-	type = ${context.attr('_contentType')}
-}
-</code></pre>
-</section>
+							// Catch-all condition for the default case
+							prototype(TYPO3.TypoScript:Case).matchers.999999999999 {
+								condition = ${true}
+								type = ${context.attr('_contentType')}
+							}
+						</code></pre>
+					</section>
 
-<section>
-	<h2>Eel</h2>
-	<p>is a JavaScript-like <b>syntax</b> for calling methods and functions</p>
-<pre><code>
-foo.bar         // Traversal
-foo.bar()       // Method call
-foo.bar().baz() // Method call
-foo.bar("arg1", true, 42) // Method call with arguments
+					<section>
+						<h2>Eel</h2>
+						<p>is a JavaScript-like <b>syntax</b> for calling methods and functions</p>
+						<pre><code>
+							foo.bar         // Traversal
+							foo.bar()       // Method call
+							foo.bar().baz() // Method call
+							foo.bar("arg1", true, 42) // Method call with arguments
 
-// true, false, numbers are all valid eel expressions
+							// true, false, numbers are all valid eel expressions
 
-12+18.5                      // you can calculate as well
-foo == bar                   // ... and compare
+							12+18.5                      // you can calculate as well
+							foo == bar                   // ... and compare
 
-foo.bar(12+18.5, foo == bar) // and of course also use it inside arguments
+							foo.bar(12+18.5, foo == bar) // and of course also use it inside arguments
 
-// TODO:
-[foo, bar]           // Array Literal
-{foo: bar, baz:test} // Object Literal
-</code></pre>
-</section>
+							// TODO:
+							[foo, bar]           // Array Literal
+							{foo: bar, baz:test} // Object Literal
+						</code></pre>
+					</section>
 
-<section>
-<h2>FlowQuery</h2>
-<p>is like <b>jQuery</b> for FLOW3</p>
-<p>represents a <b>collection</b> of things <small>(TYPO3CR Nodes)</small></p>
-<p>applying an <b>operation</b> on a flowQuery object will result in a new flowQuery object</p>
-<p>Operations are executed <b>lazily</b></p>
-<p><b>let's see the code :)</b></p>
-</section>
+					<section>
+						<h2>FlowQuery</h2>
+						<ul>
+							<li class="fragment">is like <b>jQuery</b> for FLOW3</li>
+							<li class="fragment">represents a <b>collection</b> of things <small>(TYPO3CR Nodes)</small></li>
+							<li class="fragment">applying an <b>operation</b> on a flowQuery object will result in a new flowQuery object</li>
+							<li class="fragment">Operations are executed <b>lazily</b></li>
+							<li class="fragment"><b>let's see the code :)</b></li>
+						</ul>
+					</section>
 
-<section>
-<h2>Out-of-band rendering</h2>
-<pre><code>
-<b>TypoScript Path:</b> page&lt;TYPO3.TYPO3:Page>/body&lt;TYPO3.TypoScript:FluidRenderer>/sections/main&lt;TYPO3.TypoScript:CollectionRenderer>/itemRenderer&lt;TYPO3.TypoScript:Case>/element&lt;TYPO3.TYPO3:Text>
+					<section>
+						<h2>Out-of-band rendering</h2>
+						<script type="escapedCode">
+							TypoScript Path:
+							page<TYPO3.TYPO3:Page>/body<TYPO3.TypoScript:FluidRenderer>/sections/main<TYPO3.TypoScript:CollectionRenderer>/itemRenderer<TYPO3.TypoScript:Case>/element<TYPO3.TYPO3:Text>
 
-<b>Context:</b> /sites/flow3org/support/main/text2
-</code></pre>
-<p>Easily possible now :)</p>
-</section>
-<section>
-	<h2>Questions?</h2>
-	<p class="fragment">OK, then I have some :-)</p>
-</section>
-<!-- end of internals -->
-</section>
+							Context: /sites/flow3org/support/main/text2
+						</script>
+						<p>Easily possible now :)</p>
+					</section>
+					<section>
+						<h2>Questions?</h2>
+						<p class="fragment">OK, then I have some :-)</p>
+					</section>
+					<!-- end of internals -->
+				</section>
 
 
-<section>
-<h2>Discussion</h2>
-<p>"static TypoScript" / Embedding in TYPO3</p>
-<p>Do we still need <b>Variables</b>?</p>
-<p>How can we implement the <b>reference</b> operator?</p>
-
-</section>
+				<section>
+					<h2>Discussion</h2>
+					<p class="fragment">"static TypoScript" / Embedding in TYPO3</p>
+					<p class="fragment">Do we still need <b>Variables</b> or <b>constants</b>?</p>
+					<p class="fragment">How can we implement the <b>reference</b> operator?</p>
+					<p class="fragment">How to use TypoScript for hierarchical configuration? <small>Configure two plugin instances on the same page differently</small></p>
+					<p class="fragment">Should there be TS objects for accessing repositories?</p>
+					<p class="fragment">what about Conditions?<small>(problematic for Out of Band-rendering; influences caching)</small></p>
+				</section>
 
 				<section>
 					<h1>THE END</h1>
@@ -440,38 +508,5 @@ foo.bar(12+18.5, foo == bar) // and of course also use it inside arguments
 
 		<script src="js/reveal.js"></script>
 		<script src="lib/highlight.js"></script>
-		<script>
-			// Parse the query string into a key/value object
-			var query = {};
-			location.search.replace( /[A-Z0-9]+?=(\w*)/gi, function(a) {
-				query[ a.split( '=' ).shift() ] = a.split( '=' ).pop();
-			} );
-
-			Reveal.initialize({
-				// Display controls in the bottom right corner
-				controls: true,
-
-				// Display a presentation progress bar
-				progress: true,
-
-				// If true; each slide will be pushed to the browser history
-				history: true,
-
-				// Flags if mouse wheel navigation should be enabled
-				mouseWheel: true,
-
-				// Apply a 3D roll to links on hover
-				rollingLinks: true,
-
-				// UI style
-				theme: query.theme || 'default', // default/neon
-
-				// Transition style
-				transition: query.transition || 'default' // default/cube/page/concave/linear(2d)
-			});
-
-			hljs.initHighlightingOnLoad();
-		</script>
-
 	</body>
 </html>
