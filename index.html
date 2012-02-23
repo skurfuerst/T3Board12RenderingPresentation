@@ -9,7 +9,6 @@
 		<meta name="description" content="An easy to use CSS 3D slideshow tool for quickly creating good looking HTML presentations.">
 		<meta name="author" content="Hakim El Hattab">
 
-		<link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
 
 		<link rel="stylesheet" href="css/reset.css">
 		<link rel="stylesheet" href="css/main.css">
@@ -23,8 +22,8 @@
 				vertical-align: initial;
 			}
 		</style>
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-		<script src="http://coffeescript.org/extras/coffee-script.js"></script>
+		<script src="lib/jquery.1.7.1.min.js"></script>
+		<script src="lib/coffee-script.js"></script>
 <script type="text/coffeescript">
 	$(document).ready ->
 
@@ -120,23 +119,32 @@
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section>
-					<h1>TypoScript Harmony</h1>
-					<h3 class="inverted">Revisiting TYPO3 Phoenix Content Rendering</h3>
-					<p>by Sebastian Kurfürst</p>
-					<p>for T3BOARD12</p>
-					<p>
+					<section>
+						<h1>TypoScript Harmony</h1>
+						<h3 class="inverted">Revisiting TYPO3 Phoenix Content Rendering</h3>
+						<p>by Sebastian Kurfürst</p>
+						<p>for T3BOARD12</p>
+						<p><small><b>Usage</b>: Slides are <b>nested</b> into other slides, press <b>&#x25BC;</b> to go to the nested slides.</small></p>
+						<p><small>
+							<script>
+								if (window.location.search != '?presentation')
+									document.write('<a href="?presentation">Switch to Presentation Mode</a></p>');
+								else
+									document.write('<a href="?foo">Switch to Static Mode</a></p>');
+							</script>
+							</small>
 						<script>
-							if (window.location.search != '?presentation')
-								document.write('<a href="?presentation">Switch to Presentation Mode</a></p>');
-							else
-								document.write('<a href="?foo">Switch to Static Mode</a></p>');
+							// Delicously hacky. Look away.
+							if( navigator.userAgent.match( /(iPhone|iPad|iPod|Android)/i ) )
+								document.write( '<p style="color: rgba(0,0,0,0.3); text-shadow: none;">('+'Tap to navigate'+')</p>' );
 						</script>
-
-					<script>
-						// Delicously hacky. Look away.
-						if( navigator.userAgent.match( /(iPhone|iPad|iPod|Android)/i ) )
-							document.write( '<p style="color: rgba(0,0,0,0.3); text-shadow: none;">('+'Tap to navigate'+')</p>' );
-					</script>
+					</section>
+					<section>
+						<h2>nested slide</h2>
+						<p>Great, you were able to navigate to here!</p>
+						<p>There is no further slide below, so press <b>&#x25BA;</b> to go to the next top-level slide.</p>
+						<p><small><b>Hint:</b> at the bottom-right you see the navigation controls.</small></p>
+					</section>
 				</section>
 
 				<!-- TS in v4 -->
