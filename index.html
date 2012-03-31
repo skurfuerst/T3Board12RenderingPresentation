@@ -147,68 +147,6 @@
 					</section>
 				</section>
 
-				<!-- TS in v4 -->
-				<section>
-					<section>
-						<h2>TypoScript in TYPO3 v4</h2>
-						<p>Extensible Rendering Configuration</p>
-						<p class="fragment">What's the underlying <b>programming paradigm</b>?</p>
-					</section>
-					<section>
-						<h2>Programming Paradigms</h2>
-
-						<p class="fragment"><b>Declarative</b> vs Imparative</p>
-						<p class="fragment">Procedural vs <b>Object Oriented</b></p>
-						<p class="fragment">not <b>side-effect free</b>: <code>REGISTER</code></p>
-					</section>
-					<section>
-						<h2>Not well-defined</h2>
-						<p>however, very <b>pragmatic</b></p>
-					</section>
-				</section>
-
-				<!-- Use cases -->
-				<section>
-					<section>
-						<h2>Use Cases</h2>
-						<p>What do we <b>expect</b> from the new TypoScript?</p>
-					</section>
-
-					<section>
-						<h2>Bound to nodes & stand-alone</h2>
-
-						<p class="fragment">sometimes, we want to output <b>static text</b></p>
-						<p class="fragment">sometimes, rendering of <b>content</b></p>
-						<p class="fragment">sometimes, one node is rendered <b>multiple times</b></p>
-						<p class="fragment">&#x25BA; <b>m:n relation</b> nodes -- TypoScript objects</p>
-					</section>
-
-					<section>
-						<h2>Extensible Rendering</h2>
-
-						<p>stdWrap generalized: <b>processors</b></p>
-						<p>match the <b>hierarchical nature</b> of nodes</p>
-					</section>
-
-					<section>
-						<h2>Out-of-Band Rendering</h2>
-
-						<p>Rendering <b>single content elements</b></p>
-						<p class="fragment">&#x25BA; <b>side-effect-free</b> language</p>
-						<p class="fragment">&#x25BA; <b>compact addressing</b> needed</p>
-						<code class="fragment">
-							Node Path: /my/node/path<br />
-							TypoScript Path: page1/rightColumn
-						</code>
-					</section>
-
-					<section>
-						<h2>Bonus Features</h2>
-
-						<p>also use it <b>outside TYPO3</b>, just with FLOW3</p>
-					</section>
-				</section>
-
 
 				<!-- Inspiration -->
 				<section>
@@ -254,38 +192,6 @@
 						</script>
 					</section>
 					<section>
-						<pre><code class="javascript">
-							page = TYPO3.TYPO3:Page
-							page.body.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/Page/Default.html'
-							page.body.sectionName = 'body'
-
-							page.body.parts {
-								mainMenu = TYPO3.TYPO3:MenuRenderer
-								mainMenu.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/MainMenu.html'
-								mainMenu.entryLevel = 1
-								mainMenu.maximumLevels = 2
-								subMenu = TYPO3.TYPO3:MenuRenderer
-								subMenu.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/SubMenu.html'
-								subMenu.entryLevel = 2
-								subMenu.maximumLevels = 3
-							}
-							page.head {
-								stylesheets {
-									fromTemplate = TYPO3.TypoScript:FluidRenderer
-									fromTemplate.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/Page/Default.html'
-									fromTemplate.sectionName = 'stylesheets'
-								}
-
-								javascripts {
-									fromTemplate = TYPO3.TypoScript:FluidRenderer
-									fromTemplate.templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/Page/Default.html'
-									fromTemplate.sectionName = 'javascripts'
-								}
-							}
-						</code></pre>
-					</section>
-
-					<section>
 						<h2>Output the Page Title</h2>
 						<script type="escapedCode">
 							<!-- in the template -->
@@ -298,12 +204,6 @@
 							// make it dynamic:
 							page.body.title = ${context.attr('title')}
 						</code></pre>
-
-						<p>Each TypoScript object operates on a <b>context</b> (a TYPO3CR Node).</p>
-						<p>
-							<code>${...}</code> is an <b>EEL Expression</b>
-							<small>(it's like jQuery)</small>
-						</p>
 					</section>
 
 					<section>
@@ -314,8 +214,8 @@
 							<typoScript:renderTypoScript path="sections/main" />
 						</script>
 						<pre><code class="javascript">
-							page.body.sections.main = TYPO3.TypoScript:CollectionRenderer
-							page.body.sections.main.collection = ${context.children('main').children()}
+							page.body.sections.main = TYPO3.TYPO3:Section
+							page.body.sections.main.nodePath = 'main'
 						</code></pre>
 					</section>
 
@@ -360,10 +260,10 @@
 							prototype(TYPO3.Flow3Org:TwoColumn) < prototype(TYPO3.TypoScript:FluidRenderer)
 							prototype(TYPO3.Flow3Org:TwoColumn) {
 								templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/TwoColumn.html'
-								left = TYPO3.TypoScript:CollectionRenderer
-								left.collection = ${context.children("left").children()}
-								right = TYPO3.TypoScript:CollectionRenderer
-								right.collection = ${context.children("right").children()}
+								left = TYPO3.TYPO3:Section
+								left.nodePath = 'left'
+								right = TYPO3.TYPO3:Section
+								right.nodePath = 'right'
 							}
 						</code></pre>
 						<script type="escapedCode">
@@ -372,126 +272,6 @@
 							<ts:renderTypoScript path="right" />
 						</script>
 					</section>
-
-					<section>
-						<h2>Questions so far?</h2>
-						<p class="fragment">OK, then let's dive into the <b>internals</b> :-)</p>
-					</section>
-				</section>
-
-
-				<!-- INTERNALS -->
-				<section>
-					<section>
-						<h1>Internals</h1>
-					</section>
-					<section>
-						<h2>TypoScript Programming Paradigm</h2>
-						<p>TypoScript is a
-							<b class="fragment">hierarchical</b>,
-							<b class="fragment">prototype-based</b>,
-							<b class="fragment">object oriented</b>,
-							<b class="fragment">declarative</b>,
-							<b class="fragment">side-effect free</b> language.
-						</p>
-					</section>
-
-					<section>
-						<h2>Basics</h2>
-						<ul>
-							<li class="fragment">The <b>Parser</b> parses the TypoScript markup and generates an <b>intermediate representation</b> (IR)</li>
-							<li class="fragment">The <b>Runtime</b> takes the IR and controls rendering.</li>
-							<li class="fragment">The <b>Runtime</b> instanciates the <b>TypoScript Objects</b>, lazily as needed.</li>
-							<li class="fragment">Every <b>TypoScript Object</b> is implemented by a <b>PHP class</b></li>
-							<li class="fragment">A TypoScript Object works on a <b>Context</b> <small>(a TYPO3CR Node)</small> and transforms it somehow, i.e. renders it.</li>
-							<li class="fragment">the <b>context</b> is a stack and can be manipulated using <b>push/pop</b></li>
-						</ul>
-					</section>
-
-					<section>
-						<h2><small>revisited:</small> Rendering a list of Nodes</h2>
-						<pre><code class="javascript">
-							// Setting implementation class name
-							prototype(TYPO3.TypoScript:CollectionRenderer).implementationClassName = 'TYPO3\\TypoScript\\TypoScriptObjects\\CollectionRenderer'
-							prototype(TYPO3.TypoScript:Case).implementationClassName = 'TYPO3\\TypoScript\\TypoScriptObjects\\CaseTsObject'
-
-							prototype(TYPO3.TypoScript:CollectionRenderer) {
-								collection = ${context.children()}
-								itemRenderer = TYPO3.TypoScript:Case
-							}
-
-							// a CASE TypoScript object maps a TYPO3CR Node to a certain TypoScript object based on a condition.
-							// It has a list of MATCHERS which are evaluated in-order
-							// Each matcher consists of a "condition", which is in most cases an EEL expression,
-							// and a TypoScript type which shall be used if the condition is TRUE.
-
-							// Catch-all condition for the default case
-							prototype(TYPO3.TypoScript:Case).matchers.999999999999 {
-								condition = ${true}
-								type = ${context.attr('_contentType')}
-							}
-						</code></pre>
-					</section>
-
-					<section>
-						<h2>Eel</h2>
-						<p>is a JavaScript-like <b>syntax</b> for calling methods and functions</p>
-						<pre><code>
-							foo.bar         // Traversal
-							foo.bar()       // Method call
-							foo.bar().baz() // Method call
-							foo.bar("arg1", true, 42) // Method call with arguments
-
-							// true, false, numbers are all valid eel expressions
-
-							12+18.5                      // you can calculate as well
-							foo == bar                   // ... and compare
-
-							foo.bar(12+18.5, foo == bar) // and of course also use it inside arguments
-
-							// TODO:
-							[foo, bar]           // Array Literal
-							{foo: bar, baz:test} // Object Literal
-						</code></pre>
-					</section>
-
-					<section>
-						<h2>FlowQuery</h2>
-						<ul>
-							<li class="fragment">is like <b>jQuery</b> for FLOW3</li>
-							<li class="fragment">represents a <b>collection</b> of things <small>(TYPO3CR Nodes)</small></li>
-							<li class="fragment">applying an <b>operation</b> on a flowQuery object will result in a new flowQuery object</li>
-							<li class="fragment">Operations are executed <b>lazily</b></li>
-							<li class="fragment"><b>let's see the code :)</b></li>
-						</ul>
-					</section>
-
-					<section>
-						<h2>Out-of-band rendering</h2>
-						<script type="escapedCode">
-							TypoScript Path:
-							page<TYPO3.TYPO3:Page>/body<TYPO3.TypoScript:FluidRenderer>/sections/main<TYPO3.TypoScript:CollectionRenderer>/itemRenderer<TYPO3.TypoScript:Case>/element<TYPO3.TYPO3:Text>
-
-							Context: /sites/flow3org/support/main/text2
-						</script>
-						<p>Easily possible now :)</p>
-					</section>
-					<section>
-						<h2>Questions?</h2>
-						<p class="fragment">OK, then I have some :-)</p>
-					</section>
-					<!-- end of internals -->
-				</section>
-
-
-				<section>
-					<h2>Discussion</h2>
-					<p class="fragment">"static TypoScript" / Embedding in TYPO3</p>
-					<p class="fragment">Do we still need <b>Variables</b> or <b>constants</b>?</p>
-					<p class="fragment">How can we implement the <b>reference</b> operator?</p>
-					<p class="fragment">How to use TypoScript for hierarchical configuration? <small>Configure two plugin instances on the same page differently</small></p>
-					<p class="fragment">Should there be TS objects for accessing repositories?</p>
-					<p class="fragment">what about Conditions?<small>(problematic for Out of Band-rendering; influences caching)</small></p>
 				</section>
 
 				<section>
