@@ -314,8 +314,8 @@
 							<typoScript:renderTypoScript path="sections/main" />
 						</script>
 						<pre><code class="javascript">
-							page.body.sections.main = TYPO3.TypoScript:CollectionRenderer
-							page.body.sections.main.collection = ${context.children('main').children()}
+							page.body.sections.main = TYPO3.TYPO3:Section
+							page.body.sections.main.nodePath = 'main'
 						</code></pre>
 					</section>
 
@@ -360,10 +360,10 @@
 							prototype(TYPO3.Flow3Org:TwoColumn) < prototype(TYPO3.TypoScript:FluidRenderer)
 							prototype(TYPO3.Flow3Org:TwoColumn) {
 								templatePath = 'resource://TYPO3.Flow3Org/Private/Templates/TypoScriptObjects/TwoColumn.html'
-								left = TYPO3.TypoScript:CollectionRenderer
-								left.collection = ${context.children("left").children()}
-								right = TYPO3.TypoScript:CollectionRenderer
-								right.collection = ${context.children("right").children()}
+								left = TYPO3.TYPO3:Section
+								left.nodePath = 'left'
+								right = TYPO3.TYPO3:Section
+								right.nodePath = 'right'
 							}
 						</code></pre>
 						<script type="escapedCode">
