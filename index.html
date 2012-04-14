@@ -197,8 +197,8 @@
 						<p class="fragment">&#x25BA; <b>side-effect-free</b> language</p>
 						<p class="fragment">&#x25BA; <b>compact addressing</b> needed</p>
 						<code class="fragment">
-							Node Path: /my/node/path<br />
-							TypoScript Path: page1/rightColumn
+							Node Path: /sites/flow3org/home[TYPO3.TYPO3:Page]<br />
+							TypoScript Path: page<TYPO3.TYPO3:Page>/body
 						</code>
 					</section>
 
@@ -437,33 +437,42 @@
 						<h2>Eel</h2>
 						<p>is a JavaScript-like <b>syntax</b> for calling methods and functions</p>
 						<pre><code>
-							foo.bar         // Traversal
-							foo.bar()       // Method call
-							foo.bar().baz() // Method call
-							foo.bar("arg1", true, 42) // Method call with arguments
+							${foo.bar}         // Traversal
+							${foo.bar()}       // Method call
+							${foo.bar().baz()} // Method call
+							${foo.bar("arg1", true, 42)} // Method call with arguments
 
 							// true, false, numbers are all valid eel expressions
 
-							12+18.5                      // you can calculate as well
-							foo == bar                   // ... and compare
+							${12+18.5}                      // you can calculate as well
+							${foo == bar}                   // ... and compare
 
-							foo.bar(12+18.5, foo == bar) // and of course also use it inside arguments
+							${foo.bar(12+18.5, foo == bar)} // and of course also use it inside arguments
 
-							// TODO:
-							[foo, bar]           // Array Literal
-							{foo: bar, baz:test} // Object Literal
+							${[foo, bar]}           // Array Literal
+							${{foo: bar, baz:test}} // Object Literal
 						</code></pre>
 					</section>
 
 					<section>
 						<h2>FlowQuery</h2>
-						<ul>
-							<li class="fragment">is like <b>jQuery</b> for FLOW3</li>
-							<li class="fragment">represents a <b>collection</b> of things <small>(TYPO3CR Nodes)</small></li>
-							<li class="fragment">applying an <b>operation</b> on a flowQuery object will result in a new flowQuery object</li>
-							<li class="fragment">Operations are executed <b>lazily</b></li>
-							<li class="fragment"><b>let's see the code :)</b></li>
-						</ul>
+						<p>is like <b>jQuery</b> for FLOW3</p>
+						<pre><code>
+								<div class="fragment"># output text property of node
+								${context.property('text')}</div>
+								<div class="fragment"># find all parent nodes
+								${context.parents()}</div>
+								<div class="fragment"># find all parent nodes and add the current node to the selected set
+								${context.parents().add(context)}</div>
+								<div class="fragment">isAtLeastOnThirdLevel = ${context.parents().count() >= 3}</div>
+								<div class="fragment">	${context.children('left').first()}
+								${context.children().filter('left').first()}</div>
+
+								<div class="fragment">isOfTypeText = ${context.is('[instanceof TYPO3.TYPO3:Text]')} # returns boolean value</div>
+
+								
+						</code></pre>
+						<p class="fragment">Lazy Evaluation</p>
 					</section>
 
 					<section>
